@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Analizador IA</title>
+</head>
+<body>
+
+<h1>Subir archivo</h1>
+
+<input type="file" id="fileInput">
+<button onclick="subirArchivo()">Subir</button>
+
+<h2>Columnas</h2>
+<select id="col_valor"></select>
+<select id="col_fecha"></select>
+
+<button onclick="analizar()">Analizar</button>
+
+<h2>Resultado</h2>
+<pre id="resultado"></pre>
+
+<script>
+let columnas = []
+
+async function subirArchivo() {
+    const file = document.getElementById("fileInput").files[0]
+
+    const formData = new FormData()
+    formData.append("file", file)
+
+    const res = await fetch("/api/upload", {
+        method: "POST",
+        body: formData
+    })
+
+    const data = await res.json()
+
+    columnas = data.columnas
+
+    llenarSelect("col_valor")
+    llenarSelect("col_fecha")
+}
+
+function llenarSelect(id) {
+    const select = document.getElementById(id)
+    select.innerHTML = ""
+
+    columnas.forEach(col => {
+        const option = document.createElement("option")
+        option.value = col
+        option.textContent = col
+        select.appendChild(option)
+    })
+}
+
+async function analizar() {
+    const col_valor = document.getElementById("col_valor").value
+    const col_fecha = document.getElementById("col_fecha").value
+
+    const res = await fetch("/api/analyze", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+            col_valor,
+            col_fecha
+        })
+    })
+
+    const data = await res.json()
+
+    document.getElementById("resultado").textContent =
+        JSON.stringify(data, null, 2)
+}
+</script>
+
+</body>
+</html>
